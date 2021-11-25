@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+# Lapis CLI frontend
+#load config file
+import lapiscli.config
+
+# load subcommands from lapiscli.command
+from lapiscli.command import *
