@@ -1,7 +1,115 @@
 #!/usr/bin/python3
 # Lapis CLI frontend
 #load config file
+import json
 import lapiscli.config
+import sys
+import os
+import lapiscli.api as api
 
-# load subcommands from lapiscli.command
-from lapiscli.command import *
+import typer
+# import progressbar
+import time
+
+app = typer.Typer()
+
+@app.command()
+# login command with optional --username and --password
+def login(username: str = typer.Option(..., prompt=True),
+          password: str = typer.Option(..., prompt=True, hide_input=True)):
+    """
+    Login to Lapis
+    """
+    creds = api.login(username, password)
+    # if the response is 200, save the cookie to ~/.lapis/auth.cookie
+    if creds.status_code == 200:
+        typer.echo("Login successful")
+    else:
+        # creds.text is a json, parse it to get the error message
+        error = creds.json()['error']
+        typer.echo("Login failed: " + error)
+
+# build command
+@app.command()
+def build(buildroot: str, source: str) -> None:
+    """
+    Build an artifact from source package or git repository
+    """
+    # load config file
+    # check if buildroot and source are set
+    if not buildroot:
+        typer.echo('Buildroot not set')
+        sys.exit(1)
+    if not source:
+        typer.echo('Source not set')
+        sys.exit(1)
+    # check if the source exists or is a git repo
+    if not os.path.exists(source) or source.startswith('http') or source.startswith('https'):
+        typer.echo('Source does not exist')
+        sys.exit(1)
+    try:
+        # make a progress bar
+        with typer.progressbar(length=100, show_pos=True, show_percent=True) as progress:
+            # upload the source
+            response = api.build(buildroot, source)
+        typer.echo(response.json())
+    except Exception as e:
+        typer.echo(e)
+        sys.exit(1)
+
+
+@app.command()
+def logout() -> None:
+    """
+    Logout from Lapis
+    """
+    typer.echo(api.logout().text)
+
+
+
+
+@app.command()
+def signup(username: str = typer.Option(..., prompt=True),
+           email: str = typer.Option(..., prompt=True),
+          password: str = typer.Option(..., prompt=True, hide_input=True,confirmation_prompt=True)):
+    api.signup(username, password, email)
+
+# ============================================================
+# ======================BUILDROOT MANAGEMENT==================
+buildroot_app = typer.Typer()
+
+app.add_typer(buildroot_app, name='buildroot', help='Manage buildroots')
+
+
+@buildroot_app.command('list')
+def list_buildroots() -> None:
+    """
+    List all buildroots
+    """
+    # the list is a JSON array, so format it so it's not a bunch of brackets
+    typer.echo(api.list_buildroots())
+
+@buildroot_app.command('init')
+def init_buildroot(file: str, comps:str = None) -> None:
+    """
+    Initialize a buildroot
+    """
+    if comps:
+        if not os.path.exists(file):
+            typer.echo('File does not exist')
+            sys.exit(1)
+        br = api.init_buildroot(file, comps)
+    else:
+        # check if the file exists
+        if not os.path.exists(file):
+            typer.echo('File does not exist')
+            sys.exit(1)
+        br = api.init_buildroot(file)
+    typer.echo(br.json()[1])
+
+# ============================================================
+#
+
+
+if __name__ == "__main__":
+    app()
