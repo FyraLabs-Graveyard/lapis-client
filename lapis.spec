@@ -8,7 +8,7 @@ URL:            https://gitlab.ultramarine-linux.org/lapis/lapis-client
 Source0:        https://gitlab.ultramarine-linux.org/lapis/lapis-client/-/archive/main/lapis-client-main.tar.gz
 
 BuildRequires:  python3-setuptools
-Requires:       python3-devel
+BuildRequires:  python3-devel
 Requires:       python3-setuptools
 Requires:       python3-typer
 Requires:       python3-requests
@@ -29,8 +29,6 @@ install lapis -m 755 %{buildroot}%{_bindir}/lapis
 cp -r lapiscli/ %{buildroot}%{python3_sitelib}
 %files
 %doc README.md
-
-%files
 
 %{_bindir}/lapis
 %{python3_sitelib}/lapiscli/
