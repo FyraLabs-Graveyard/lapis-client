@@ -6,7 +6,7 @@ import lapiscli.config
 import sys
 import os
 import lapiscli.api as api
-
+import click_spinner
 import typer
 # import progressbar
 import time
@@ -49,7 +49,7 @@ def build(buildroot: str, source: str) -> None:
         sys.exit(1)
     try:
         # make a progress bar
-        with typer.progressbar(length=100, show_pos=True, show_percent=True) as progress:
+        with click_spinner.spinner():
             # upload the source
             response = api.build(buildroot, source)
         typer.echo(response.json())

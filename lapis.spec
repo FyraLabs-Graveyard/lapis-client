@@ -12,7 +12,7 @@ BuildRequires:  python3-devel
 Requires:       python3-setuptools
 Requires:       python3-typer
 Requires:       python3-requests
-
+Requires:       python3-click-spinner
 %description
 Lapis is an RPM build system inspired by Copr.
 
